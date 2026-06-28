@@ -1,0 +1,1 @@
+# Girisimcinin-Pusulasi
