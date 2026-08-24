@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Konuklar Paneli — Girişimcinin Pusulası</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Hanken+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* =====================================================================
+     AYAR: Apps Script'i dağıttıktan sonra aldığınız "Web App URL"i
+     aşağıya, tırnakların İÇİNE yapıştırın. (Code.gs.txt dosyasındaki
+     kurulum adımlarına bakın.)
+     ===================================================================== */
+</style>
+</head>
+<body>
+<script>
+  // -----------------------------------------------------------------------
+  // BURAYA Apps Script Web App URL'nizi yapıştırın:
+  const API_URL = "https://script.google.com/macros/s/AKfycbzJaAbgzcFTwrhA41VrB5RvA0NS_-2ThyXo5Gu8kvIpIzO8W5jkXh2wChfHRy9CBEF5cg/exec";
+  // örnek: "https://script.google.com/macros/s/AKfycb.../exec"
+  // -----------------------------------------------------------------------
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #08080A; min-height: 100%; }
+  body {
+    color: #F4E9CF;
+    font-family: 'Hanken Grotesk', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: clamp(20px, 4vw, 48px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+  }
+  h1, h2, h3 { font-family: 'Archivo', sans-serif; font-weight: 600; letter-spacing: -0.01em; }
+  a { color: #D8B75E; }
+  .wrap { width: 100%; max-width: 880px; display: flex; flex-direction: column; gap: 24px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand .dot { width: 10px; height: 10px; border-radius: 50%; background: #D8B75E; box-shadow: 0 0 12px rgba(216,183,94,.6); }
+  .brand span { font-size: 13px; letter-spacing: .25em; text-transform: uppercase; color: rgba(244,233,207,.6); }
+  h1 { font-size: clamp(22px, 3vw, 28px); color: #F6EFDF; }
+  .sub { font-size: 13.5px; color: rgba(244,233,207,.55); font-weight: 300; line-height: 1.5; }
+
+  .card {
+    background: #0A0A0C;
+    border: 1px solid rgba(216,183,94,.2);
+    border-radius: 10px;
+    padding: clamp(18px, 3vw, 28px);
+  }
+
+  /* ---- login ---- */
+  .login-card { max-width: 380px; margin: 8vh auto 0; display: flex; flex-direction: column; gap: 16px; }
+  label { font-size: 12px; letter-spacing: .08em; color: rgba(216,183,94,.85); font-weight: 600; text-transform: uppercase; }
+  input, textarea {
+    width: 100%; background: #111114; border: 1px solid rgba(216,183,94,.25); border-radius: 6px;
+    padding: 11px 13px; color: #F4E9CF; font: 14.5px/1.4 'Hanken Grotesk', sans-serif; outline: none;
+    transition: border-color .25s;
+  }
+  input:focus, textarea:focus { border-color: #D8B75E; }
+  textarea { resize: vertical; min-height: 72px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  button {
+    appearance: none; border: 0; border-radius: 6px; cursor: pointer;
+    font: 600 13.5px/1 'Hanken Grotesk', sans-serif; letter-spacing: .03em;
+    padding: 12px 20px; transition: box-shadow .3s, transform .3s, opacity .2s;
+  }
+  button:disabled { opacity: .5; cursor: default; }
+  .btn-gold { background: linear-gradient(135deg,#F8EDAE,#D8B75E 60%,#A8842E); color: #0A0A0A; }
+  .btn-gold:hover:not(:disabled) { box-shadow: 0 0 24px rgba(216,183,94,.4); }
+  .btn-ghost { background: transparent; border: 1px solid rgba(216,183,94,.4); color: #F1E4C4; }
+  .btn-ghost:hover:not(:disabled) { border-color: #D8B75E; color: #FBF3DF; }
+  .btn-danger { background: transparent; border: 1px solid rgba(220,90,80,.45); color: #E8A79E; padding: 7px 12px; font-size: 12px; }
+  .btn-danger:hover:not(:disabled) { border-color: #E8685A; color: #FBD9D3; }
+  .err { color: #E8A79E; font-size: 13px; background: rgba(220,90,80,.08); border: 1px solid rgba(220,90,80,.3); border-radius: 6px; padding: 9px 12px; }
+  .ok { color: #C7E8A7; font-size: 13px; background: rgba(120,190,90,.08); border: 1px solid rgba(120,190,90,.3); border-radius: 6px; padding: 9px 12px; }
+
+  /* ---- main panel ---- */
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .add-form { display: grid; grid-template-columns: 132px 1fr; gap: 18px; }
+  .photo-drop {
+    width: 132px; height: 132px; border-radius: 8px; border: 1.5px dashed rgba(216,183,94,.4);
+    background: rgba(216,183,94,.05); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; overflow: hidden; position: relative; flex-shrink: 0;
+  }
+  .photo-drop img { width: 100%; height: 100%; object-fit: cover; }
+  .photo-drop .hint { font-size: 11px; text-align: center; color: rgba(244,233,207,.5); padding: 8px; }
+  .logo-drop { height: 66px; }
+  .logo-drop img { object-fit: contain; background: #111114; }
+  .form-grid { display: flex; flex-direction: column; gap: 12px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .guest-list { display: flex; flex-direction: column; gap: 10px; }
+  .guest-row {
+    display: flex; align-items: center; gap: 14px; background: #0A0A0C;
+    border: 1px solid rgba(216,183,94,.16); border-radius: 8px; padding: 10px 14px;
+  }
+  .guest-avatar {
+    width: 46px; height: 46px; border-radius: 50%; overflow: hidden; flex-shrink: 0;
+    background: rgba(216,183,94,.12); display: flex; align-items: center; justify-content: center;
+    font-family: 'Archivo', sans-serif; font-weight: 600; color: #D8B75E; font-size: 16px;
+  }
+  .guest-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .guest-meta { flex: 1; min-width: 0; }
+  .guest-meta .name { font-family: 'Archivo', sans-serif; font-weight: 600; font-size: 15px; color: #F4E6B4; }
+  .guest-meta .role { font-size: 11.5px; letter-spacing: .15em; color: rgba(216,183,94,.7); }
+  .empty-note { font-size: 13.5px; color: rgba(244,233,207,.5); text-align: center; padding: 20px 0; }
+  .spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(216,183,94,.25); border-top-color: #D8B75E; animation: sp .7s linear infinite; display: inline-block; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+
+  .hidden { display: none !important; }
+</style>
+
+<div class="wrap">
+  <div class="brand"><span class="dot"></span><span>Girişimcinin Pusulası</span></div>
+
+  <!-- ============ LOGIN ============ -->
+  <div id="loginView" class="card login-card">
+    <h1>Konuklar Paneli</h1>
+    <p class="sub">Referans konuklarımızı buradan ekleyebilir veya kaldırabilirsiniz. Devam etmek için şifreyi girin.</p>
+    <div class="field">
+      <label for="pw">Şifre</label>
+      <input id="pw" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div id="loginErr" class="err hidden"></div>
+    <button id="loginBtn" class="btn-gold">Giriş Yap</button>
+  </div>
+
+  <!-- ============ PANEL ============ -->
+  <div id="panelView" class="wrap hidden">
+    <div class="topbar">
+      <div>
+        <h1>Konuklar Paneli</h1>
+        <p class="sub">Referans Konuklarımız bölümünü buradan yönetin.</p>
+      </div>
+      <button id="logoutBtn" class="btn-ghost">Çıkış Yap</button>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-bottom:16px;font-size:16px;color:#F4E6B4;">Yeni Konuk Ekle</h3>
+      <div class="add-form">
+        <div style="display:flex;flex-direction:column;gap:10px;flex-shrink:0;">
+          <div id="photoDrop" class="photo-drop">
+            <span class="hint">Fotoğraf seç<br>(opsiyonel)</span>
+            <input id="photoInput" type="file" accept="image/png,image/jpeg,image/webp" class="hidden">
+          </div>
+          <div id="logoDrop" class="photo-drop logo-drop">
+            <span class="hint">Firma logosu<br>(opsiyonel)</span>
+            <input id="logoInput" type="file" accept="image/png,image/jpeg,image/webp" class="hidden">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="row2">
+            <div class="field"><label>İsim *</label><input id="gName" type="text" placeholder="Ad Soyad"></div>
+            <div class="field"><label>Unvan</label><input id="gRole" type="text" placeholder="KONUK" value="KONUK"></div>
+          </div>
+          <div class="field"><label>Kısa Açıklama</label><textarea id="gBio" placeholder="Bu konuğun yaptığı işe dair kısa açıklama..."></textarea></div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <button id="addBtn" class="btn-gold">Ekle</button>
+            <span id="addSpin" class="spinner hidden"></span>
+            <div id="addErr" class="err hidden" style="flex:1;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-bottom:16px;font-size:16px;color:#F4E6B4;">Mevcut Konuklar (<span id="guestCount">0</span>)</h3>
+      <div id="guestList" class="guest-list"></div>
+      <div id="listLoading" class="empty-note"><span class="spinner"></span> Yükleniyor…</div>
+      <div id="listEmpty" class="empty-note hidden">Henüz konuk eklenmemiş.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  let token = sessionStorage.getItem('konuklar_token') || '';
+  let selectedPhoto = null; // { base64, mime }
+  let selectedLogo = null;  // { base64, mime }
+
+  function configured() {
+    return API_URL && API_URL.indexOf('PASTE_YOUR_WEB_APP_URL_HERE') === -1;
+  }
+
+  async function api(action, extra) {
+    const body = Object.assign({ action, token }, extra || {});
+    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(body) });
+    return res.json();
+  }
+  async function apiGet(action) {
+    const res = await fetch(API_URL + '?action=' + encodeURIComponent(action));
+    return res.json();
+  }
+
+  function showLogin() {
+    $('loginView').classList.remove('hidden');
+    $('panelView').classList.add('hidden');
+  }
+  function showPanel() {
+    $('loginView').classList.add('hidden');
+    $('panelView').classList.remove('hidden');
+    loadGuests();
+  }
+
+  // ---- login ----
+  $('loginBtn').addEventListener('click', doLogin);
+  $('pw').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+
+  async function doLogin() {
+    if (!configured()) {
+      $('loginErr').textContent = 'Panel henüz kurulmadı: HTML dosyasının en üstündeki API_URL değeri ayarlanmamış.';
+      $('loginErr').classList.remove('hidden');
+      return;
+    }
+    const pw = $('pw').value;
+    if (!pw) return;
+    $('loginBtn').disabled = true;
+    $('loginErr').classList.add('hidden');
+    try {
+      const r = await api('login', { password: pw });
+      if (r.ok) {
+        token = r.token;
+        sessionStorage.setItem('konuklar_token', token);
+        $('pw').value = '';
+        showPanel();
+      } else {
+        $('loginErr').textContent = r.error || 'Giriş başarısız.';
+        $('loginErr').classList.remove('hidden');
+      }
+    } catch (e) {
+      $('loginErr').textContent = 'Sunucuya ulaşılamadı. API_URL doğru mu, internet bağlantınız var mı kontrol edin.';
+      $('loginErr').classList.remove('hidden');
+    }
+    $('loginBtn').disabled = false;
+  }
+
+  $('logoutBtn').addEventListener('click', async () => {
+    try { await api('logout'); } catch (e) {}
+    token = '';
+    sessionStorage.removeItem('konuklar_token');
+    showLogin();
+  });
+
+  // ---- photo picker ----
+  $('photoDrop').addEventListener('click', () => $('photoInput').click());
+  function bindPhotoInput() {
+    $('photoInput').addEventListener('change', () => {
+      const f = $('photoInput').files[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result;
+        const base64 = dataUrl.split(',')[1];
+        selectedPhoto = { base64, mime: f.type };
+        $('photoDrop').innerHTML = '<img src="' + dataUrl + '" alt="">';
+      };
+      reader.readAsDataURL(f);
+    });
+  }
+  function resetPhotoDrop() {
+    $('photoDrop').innerHTML = '<span class="hint">Fotoğraf seç<br>(opsiyonel)</span><input id="photoInput" type="file" accept="image/png,image/jpeg,image/webp" class="hidden">';
+    bindPhotoInput();
+  }
+  bindPhotoInput();
+
+  // ---- logo picker ----
+  $('logoDrop').addEventListener('click', () => $('logoInput').click());
+  function bindLogoInput() {
+    $('logoInput').addEventListener('change', () => {
+      const f = $('logoInput').files[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result;
+        const base64 = dataUrl.split(',')[1];
+        selectedLogo = { base64, mime: f.type };
+        $('logoDrop').innerHTML = '<img src="' + dataUrl + '" alt="">';
+      };
+      reader.readAsDataURL(f);
+    });
+  }
+  function resetLogoDrop() {
+    $('logoDrop').innerHTML = '<span class="hint">Firma logosu<br>(opsiyonel)</span><input id="logoInput" type="file" accept="image/png,image/jpeg,image/webp" class="hidden">';
+    bindLogoInput();
+  }
+  bindLogoInput();
+
+  // ---- add guest ----
+  $('addBtn').addEventListener('click', async () => {
+    const name = $('gName').value.trim();
+    const role = $('gRole').value.trim() || 'KONUK';
+    const bio = $('gBio').value.trim();
+    $('addErr').classList.add('hidden');
+    if (!name) {
+      $('addErr').textContent = 'İsim boş olamaz.';
+      $('addErr').classList.remove('hidden');
+      return;
+    }
+    $('addBtn').disabled = true;
+    $('addSpin').classList.remove('hidden');
+    try {
+      const r = await api('add', {
+        name, role, bio,
+        photoBase64: selectedPhoto ? selectedPhoto.base64 : '',
+        photoMime: selectedPhoto ? selectedPhoto.mime : '',
+        logoBase64: selectedLogo ? selectedLogo.base64 : '',
+        logoMime: selectedLogo ? selectedLogo.mime : ''
+      });
+      if (r.ok) {
+        $('gName').value = ''; $('gBio').value = ''; $('gRole').value = 'KONUK';
+        selectedPhoto = null;
+        selectedLogo = null;
+        resetPhotoDrop();
+        resetLogoDrop();
+        loadGuests();
+      } else {
+        $('addErr').textContent = r.error || 'Eklenemedi.';
+        $('addErr').classList.remove('hidden');
+      }
+    } catch (e) {
+      $('addErr').textContent = 'Sunucuya ulaşılamadı.';
+      $('addErr').classList.remove('hidden');
+    }
+    $('addBtn').disabled = false;
+    $('addSpin').classList.add('hidden');
+  });
+
+  // ---- list + delete ----
+  async function loadGuests() {
+    $('listLoading').classList.remove('hidden');
+    $('listEmpty').classList.add('hidden');
+    $('guestList').innerHTML = '';
+    try {
+      const r = await apiGet('list');
+      const guests = (r.ok && r.guests) || [];
+      $('guestCount').textContent = guests.length;
+      $('listLoading').classList.add('hidden');
+      if (!guests.length) { $('listEmpty').classList.remove('hidden'); return; }
+      $('guestList').innerHTML = guests.map(rowHtml).join('');
+      guests.forEach((g) => {
+        const btn = document.querySelector('[data-del="' + g.id + '"]');
+        if (btn) btn.addEventListener('click', () => deleteGuest(g.id, g.name));
+      });
+    } catch (e) {
+      $('listLoading').classList.add('hidden');
+      $('listEmpty').textContent = 'Liste yüklenemedi. Sunucuya ulaşılamadı.';
+      $('listEmpty').classList.remove('hidden');
+    }
+  }
+
+  function esc(s) {
+    return String(s || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function rowHtml(g) {
+    const initial = (g.name || '?').trim().charAt(0).toUpperCase();
+    const avatar = g.photoUrl
+      ? '<img src="' + esc(g.photoUrl) + '" alt="">'
+      : initial;
+    const logoBadge = g.logoUrl
+      ? '<img src="' + esc(g.logoUrl) + '" alt="logo" style="width:28px;height:28px;border-radius:4px;object-fit:contain;background:#111114;border:1px solid rgba(216,183,94,.2);flex-shrink:0;">'
+      : '';
+    return '' +
+      '<div class="guest-row">' +
+        '<div class="guest-avatar">' + avatar + '</div>' +
+        '<div class="guest-meta"><div class="name">' + esc(g.name) + '</div><div class="role">' + esc(g.role || 'KONUK') + '</div></div>' +
+        logoBadge +
+        '<button class="btn-danger" data-del="' + esc(g.id) + '">Sil</button>' +
+      '</div>';
+  }
+
+  async function deleteGuest(id, name) {
+    if (!confirm('"' + name + '" silinsin mi? Bu işlem geri alınamaz.')) return;
+    try {
+      const r = await api('delete', { id });
+      if (r.ok) loadGuests();
+      else alert(r.error || 'Silinemedi.');
+    } catch (e) {
+      alert('Sunucuya ulaşılamadı.');
+    }
+  }
+
+  // ---- boot ----
+  if (!configured()) {
+    showLogin();
+    $('loginErr').textContent = 'Panel henüz kurulmadı: HTML dosyasının en üstündeki API_URL değeri ayarlanmamış (bkz. Code.gs.txt kurulum adımları).';
+    $('loginErr').classList.remove('hidden');
+  } else if (token) {
+    showPanel();
+  } else {
+    showLogin();
+  }
+})();
+</script>
+</body>
+</html>
